@@ -1,0 +1,48 @@
+version: '1.0'
+services:
+  flask:
+    build: flask
+    container_name: flask
+    ports:
+      - ${FLASK_ADRESS:-5000}:5000
+    volumes:
+      - ./flask:/usr/src/app
+    networks:
+      - MonNetwork
+    depends_on:
+      - db_postgres
+
+  db_postgres:
+    image: postgres:latest
+    container_name: db_postgres
+    ports:
+      - ${POSTGRES_ADRESS:-5432}:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - MonNetwork
+
+  pgmyadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgmyadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - ${PGADMIN_ADRESS:-8080}:80
+    networks:
+      - MonNetwork
+    depends_on:
+      - db_postgres
+
+volumes:
+  db_data: {}
+
+networks:
+  MonNetwork: {}
